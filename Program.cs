@@ -85,9 +85,9 @@ namespace DesignPatterns_CSharp
         static void TestFactoryMethod_transport()
         {
             creationalPatterns.Client_FactoryMtd_transport client = new creationalPatterns.Client_FactoryMtd_transport();
-            creationalPatterns.TransportCreator transCreator = new creationalPatterns.TransportCreator();
-            creationalPatterns.Logistics logistics = new creationalPatterns.Logistics(transCreator);
-            client.ClientCode(logistics);
+            creationalPatterns.Logistics logistics = new creationalPatterns.Logistics();
+            int transportDistance = 4400;
+            client.ClientCode(logistics,transportDistance);
         }
     }
 

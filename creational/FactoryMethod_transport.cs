@@ -5,16 +5,12 @@ namespace DesignPatterns_CSharp.creational
 {
     public class Logistics
     {
-        protected TransportCreator transportCreator;
-        public Logistics(TransportCreator creator)
-        {
-            this.transportCreator = creator;
-        }
         public string PlanDelivery(int distance)
         {
             Console.WriteLine("Logistics : the plan for delivery is being generated\n");
-            TransportMethod bestTransport = LogisticsCalculator.GetBestTransport(distance);
-            ITransport transport = this.transportCreator.CreateTransport(bestTransport);
+            //using the factory-method pattern here without dependency injection as the calculation to get the best transport creator is being handled inside the logistics class
+            TransportCreator bestTransportCreator = LogisticsCalculator.GetBestTransportCreator(distance);
+            ITransport transport = bestTransportCreator.CreateTransport();
             return transport.Deliver();
         }
         
@@ -33,34 +29,43 @@ namespace DesignPatterns_CSharp.creational
                 return TransportMethod.Water;
             
         }
+        public static TransportCreator GetBestTransportCreator(int distance)
+        {
+            Console.WriteLine("fetching the best transport option... \n");
+            if(distance <= 5000)
+                return new TruckCreator();
+            else if(distance <= 10000)
+                return new AirPlaneCreator();
+            else
+                return new ShipCreator();
+        }
 
     }
-    public  class TransportCreator
+    public abstract class TransportCreator
     {
-        public ITransport CreateTransport(TransportMethod bestTransportMethod)
-        {
-            ITransport transport = null;
-            if(bestTransportMethod == TransportMethod.Road)
-                transport = GetATruck();
-            else if(bestTransportMethod == TransportMethod.Air)
-                transport = GetAPlane();
-            else
-                transport = GetAShip();
-            return transport;
-        }
-        private static Truck GetATruck()
+        public abstract ITransport CreateTransport();
+    }
+    public class TruckCreator : TransportCreator
+    {
+        public override ITransport CreateTransport()
         {
             return new Truck();
         }
-        private static Ship GetAShip()
+    }
+    public class ShipCreator : TransportCreator
+    {
+        public override ITransport CreateTransport()
         {
             return new Ship();
         }
-        public static Airplane GetAPlane()
+    }
+    public class AirPlaneCreator : TransportCreator
+    {
+        public override ITransport CreateTransport()
         {
             return new Airplane();
         }
-    }    
+    }
     public enum TransportMethod
     {
         Road,
@@ -95,10 +100,10 @@ namespace DesignPatterns_CSharp.creational
     }
     public class Client_FactoryMtd_transport
     {
-        public void ClientCode(Logistics logistics)
+        public void ClientCode(Logistics logistics, int transportDistance)
         {
             Console.WriteLine($"Client: Getting the delivery plan..\n");
-            Console.WriteLine(logistics.PlanDelivery(8900));
+            Console.WriteLine(logistics.PlanDelivery(transportDistance));
         }
     }
 }
