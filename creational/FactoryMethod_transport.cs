@@ -13,9 +13,8 @@ namespace DesignPatterns_CSharp.creational
         public string PlanDelivery(int distance)
         {
             Console.WriteLine("Logistics : the plan for delivery is being generated\n");
-            // TransportMethod bestTransport = LogisticsCalculator.GetBestTransport(distance);
-            ITransport transport = this.transportCreator.CreateTransport(distance);
-            // ITransport transport = this.transportCreator.CreateTransport(bestTransport);
+            TransportMethod bestTransport = LogisticsCalculator.GetBestTransport(distance);
+            ITransport transport = this.transportCreator.CreateTransport(bestTransport);
             return transport.Deliver();
         }
         
@@ -38,18 +37,6 @@ namespace DesignPatterns_CSharp.creational
     }
     public  class TransportCreator
     {
-        public ITransport CreateTransport(int distance)
-        {
-            ITransport transport = null;
-            TransportMethod bestTransport = LogisticsCalculator.GetBestTransport(distance);
-            if(bestTransport == TransportMethod.Road)
-                transport = GetATruck();
-            else if(bestTransport == TransportMethod.Air)
-                transport = GetAPlane();
-            else
-                transport = GetAShip();
-            return transport;
-        }
         public ITransport CreateTransport(TransportMethod bestTransportMethod)
         {
             ITransport transport = null;
