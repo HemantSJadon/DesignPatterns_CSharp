@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DesignPatterns_CSharp.structural;
+using creationalPatterns =  DesignPatterns_CSharp.creational;
 
 namespace DesignPatterns_CSharp
 {
@@ -12,7 +13,13 @@ namespace DesignPatterns_CSharp
             // TestDecoratorPattern_conceptual();
 
             //2. Decorator pattern example notifier
-            TestDecoratorPattern_notifier();
+            // TestDecoratorPattern_notifier();
+
+            //3. Factory Method conceptual example
+            // TestFactoryMethod_conceptual();
+
+            //4. Factory Method transport example
+            TestFactoryMethod_transport();
 
         }
         static void TestDecoratorPattern_conceptual()
@@ -62,6 +69,25 @@ namespace DesignPatterns_CSharp
             NotifierClient nclient = new NotifierClient(slackDecorator);
             Console.WriteLine("Doing some work.");
             nclient.ClientCode();
+        }
+        static void TestFactoryMethod_conceptual()
+        {
+            creationalPatterns.Client_factoryMtd_Conc client = new creationalPatterns.Client_factoryMtd_Conc();
+            creationalPatterns.ConcreteCreator1 creator1 = new creationalPatterns.ConcreteCreator1();
+            Console.WriteLine("App launched with Concrete creator 1");
+            client.ClientCode(creator1);
+            Console.WriteLine("");
+            creationalPatterns.ConcreteCreator2 creator2 = new creationalPatterns.ConcreteCreator2();
+            Console.WriteLine("App launched with concrete creator 2");
+            client.ClientCode(creator2);
+
+        }
+        static void TestFactoryMethod_transport()
+        {
+            creationalPatterns.Client_FactoryMtd_transport client = new creationalPatterns.Client_FactoryMtd_transport();
+            creationalPatterns.TransportCreator transCreator = new creationalPatterns.TransportCreator();
+            creationalPatterns.Logistics logistics = new creationalPatterns.Logistics(transCreator);
+            client.ClientCode(logistics);
         }
     }
 
