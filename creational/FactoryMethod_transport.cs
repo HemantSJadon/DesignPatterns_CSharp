@@ -3,14 +3,13 @@ using System.Text;
 
 namespace DesignPatterns_CSharp.creational
 {
-    public class Logistics
+    //This class has been made static since this does not need to be aware of instance variables
+    public static class Logistics
     {
-        public string PlanDelivery(int distance)
+        public static string PlanDelivery(TransportCreator transportCreator)
         {
             Console.WriteLine("Logistics : the plan for delivery is being generated\n");
-            //using the factory-method pattern here without dependency injection as the calculation to get the best transport creator is being handled inside the logistics class
-            TransportCreator bestTransportCreator = LogisticsCalculator.GetBestTransportCreator(distance);
-            ITransport transport = bestTransportCreator.CreateTransport();
+            ITransport transport = transportCreator.CreateTransport();
             return transport.Deliver();
         }
         
@@ -18,17 +17,6 @@ namespace DesignPatterns_CSharp.creational
 
     public static class LogisticsCalculator
     {
-        public static TransportMethod GetBestTransport(int distance)
-        {
-            Console.WriteLine("Calculating best transport option... \n");
-            if(distance <= 5000)
-                return TransportMethod.Road;
-            else if(distance <= 10000)
-                return TransportMethod.Air;
-            else
-                return TransportMethod.Water;
-            
-        }
         public static TransportCreator GetBestTransportCreator(int distance)
         {
             Console.WriteLine("fetching the best transport option... \n");
@@ -66,12 +54,6 @@ namespace DesignPatterns_CSharp.creational
             return new Airplane();
         }
     }
-    public enum TransportMethod
-    {
-        Road,
-        Water,
-        Air
-    }
     public interface ITransport
     {
         string Deliver();
@@ -100,10 +82,13 @@ namespace DesignPatterns_CSharp.creational
     }
     public class Client_FactoryMtd_transport
     {
-        public void ClientCode(Logistics logistics, int transportDistance)
+        public void ClientCode(int transportDistance)
         {
             Console.WriteLine($"Client: Getting the delivery plan..\n");
-            Console.WriteLine(logistics.PlanDelivery(transportDistance));
+            //The responsibility to get the best Transport creator is on the client code
+            TransportCreator bestTransportCreator = LogisticsCalculator.GetBestTransportCreator(transportDistance);
+            //the creator class is injected in the method of logistics class rather than the constructor : Can the logistics class be made static
+            Console.WriteLine(Logistics.PlanDelivery(bestTransportCreator));
         }
     }
 }
