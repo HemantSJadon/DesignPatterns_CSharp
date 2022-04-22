@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using DesignPatterns_CSharp.structural;
 using creationalPatterns =  DesignPatterns_CSharp.creational;
 
@@ -19,7 +20,11 @@ namespace DesignPatterns_CSharp
             // TestFactoryMethod_conceptual();
 
             //4. Factory Method transport example
-            TestFactoryMethod_transport();
+            // TestFactoryMethod_transport();
+
+            //5. Singleton pattern conceptual example
+            // TestSingletonPattern_conceptualNaive();
+            TestSingletonPattern_naiveMultithreading();
 
         }
         static void TestDecoratorPattern_conceptual()
@@ -87,6 +92,39 @@ namespace DesignPatterns_CSharp
             creationalPatterns.Client_FactoryMtd_transport client = new creationalPatterns.Client_FactoryMtd_transport();
             int transportDistance = 4400;
             client.ClientCode(transportDistance);
+        }
+        static void TestSingletonPattern_conceptualNaive()
+        {
+            creationalPatterns.Client_Singleton_conc clientOld  = new creationalPatterns.Client_Singleton_conc();
+            int numClient= 3;
+            var prevInstance  = clientOld.ClientCode();
+            for(int i = 0; i < numClient; i++)
+            {
+                creationalPatterns.Client_Singleton_conc client = new creationalPatterns.Client_Singleton_conc();
+                bool isSameInstance = prevInstance == client.ClientCode();
+                Console.WriteLine($"Is same instance: {isSameInstance}");
+            }
+        }
+        static void TestSingletonPattern_naiveMultithreading()
+        {
+            creationalPatterns.Client_Singleton_conc client = new creationalPatterns.Client_Singleton_conc();
+            creationalPatterns.SingletonConcept prevInstance = null;
+            List<Thread> threads = new List<Thread>();
+            for(int i = 0; i < 15; i++)
+            {
+                Thread thread = new Thread(() => {
+                    var currInstance = client.ClientCode();
+                    bool isSameInstance = prevInstance == null ? true :  prevInstance == currInstance;
+                    Console.WriteLine($"Is Same Instance: {isSameInstance}");
+                    prevInstance = currInstance;
+                });
+                threads.Add(thread);
+            }
+            foreach(var thread in threads)
+                thread.Start();
+            foreach(var thread in threads)
+                thread.Join();
+
         }
     }
 
