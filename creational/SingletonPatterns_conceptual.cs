@@ -4,36 +4,29 @@ namespace DesignPatterns_CSharp.creational
 {
     public sealed class SingletonConcept
     {
-        private static SingletonConcept _instance;
-        private static readonly object _lock = new Object();
-        public  int _dummyValue {get; private set;}
+        private int dummyValue;
         private SingletonConcept()
         {
         }
         public static SingletonConcept GetInstance()
         {
-            if(_instance is null)
-            {
-                lock (_lock)
-                {
-                    if(_instance is null)
-                    {
-                        Console.WriteLine("SingletonConcept: No class instance exists yet.");
-                        _instance = new SingletonConcept(); 
-                        Console.WriteLine("SingletonConcept: creating and saving a new instance");
-                    }
-                    else
-                        Console.WriteLine("SingletonConcept: Returning the already created instance... ");
-                }
-            }
-            else
-                Console.WriteLine("SingletonConcept: Returning the already created instance... ");
-            return _instance;
+            var instance = Nested.instance;
+            instance.dummyValue = 1500;
+            return instance;
         }
         public void SomeInstanceOperation()
         {
             Console.WriteLine("Some instance operation performed on this singleton class.");
         }
+        private class Nested
+        {
+            static Nested()
+            {
+
+            }
+            internal static readonly SingletonConcept instance = new SingletonConcept();
+        }
+
 
     }
     public class Client_Singleton_conc

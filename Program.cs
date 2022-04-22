@@ -8,6 +8,7 @@ namespace DesignPatterns_CSharp
 {
     class Program
     {
+        private static readonly Object padlock = new Object();
         static void Main(string[] args)
         {
             //1. Decorator pattern example conceptual
@@ -114,9 +115,16 @@ namespace DesignPatterns_CSharp
             {
                 Thread thread = new Thread(() => {
                     var currInstance = client.ClientCode();
-                    bool isSameInstance = prevInstance == null ? true :  prevInstance == currInstance;
-                    Console.WriteLine($"Is Same Instance: {isSameInstance}");
-                    prevInstance = currInstance;
+                    lock (padlock)
+                    {
+                        if(prevInstance != null){
+                        bool isSameInstance = prevInstance == currInstance;
+                        Console.WriteLine($"Is Same Instance: {isSameInstance}");
+                        }
+                        else
+                            Console.WriteLine("First Instance.");
+                        prevInstance = currInstance;
+                    }
                 });
                 threads.Add(thread);
             }
