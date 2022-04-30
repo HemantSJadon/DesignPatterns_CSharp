@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using DesignPatterns_CSharp.structural;
 using creationalPatterns =  DesignPatterns_CSharp.creational;
+using behaviouralPatterns = DesignPatterns_CSharp.behavioural;
 
 namespace DesignPatterns_CSharp
 {
@@ -25,8 +27,29 @@ namespace DesignPatterns_CSharp
 
             //5. Singleton pattern conceptual example
             // TestSingletonPattern_conceptualNaive();
-            TestSingletonPattern_naiveMultithreading();
+            // TestSingletonPattern_naiveMultithreading();
 
+            
+            // StringBuilder str = new StringBuilder();
+            // Console.WriteLine(BuilderSuffixString(10,'a',str));
+            
+            //6. Command Pattern conceptual example
+            TestCommandPattern_conceptual();
+            
+
+        }
+        private static string BuilderSuffixString(int runningCount, char character, StringBuilder stringToAppend)
+        {
+            if(runningCount > 10){
+                stringToAppend.Append($"9{character}");
+                runningCount -= 9;
+                return BuilderSuffixString(runningCount, character,stringToAppend);
+            }
+            else
+            {
+                stringToAppend.Append(runningCount > 1 ? $"{runningCount}{character}" : $"{character}");
+                return stringToAppend.ToString();
+            }
         }
         static void TestDecoratorPattern_conceptual()
         {
@@ -133,6 +156,11 @@ namespace DesignPatterns_CSharp
             foreach(var thread in threads)
                 thread.Join();
 
+        }
+        static void TestCommandPattern_conceptual()
+        {
+            behaviouralPatterns.Client_command_conc client = new behaviouralPatterns.Client_command_conc();
+            client.ClientCode();
         }
     }
 

@@ -1,0 +1,121 @@
+abstract class command is
+    protected field app: Application
+    protected field editor: Editor
+    protected field backup: text
+
+    constructor Command(app: Application, editor: Editor) is
+        this.app = app
+        this.editor = editor
+    
+    method saveBackup() is
+        backup = editor.text
+    
+    method undo() is
+        editor.text = backup
+    
+    abstract method execute()
+
+class copyCommand extends command is
+    constructor copyCommand(app: Application, editor: Editor) : base(app,editor)
+
+    //This command is not saved to the history since it doesn't change editor's state
+    method execute() is
+        app.clipboard = editor.getSelection()
+        return false //false since it's not being saved to the history
+
+class cutCommand extends command is
+    constructor cutCommand(app: Application, editor: Editor) : base(app, editor)
+
+    method execute() is
+        saveBackup() //since it changes the state of editor
+        app.clipboard = editor.getSelection()
+        editor.deleteSelection()
+        return true
+
+class pasteCommand extends command is
+    constructor pasteCommand(app: Application, editor: Editor) : base(app, editor)
+
+    method execute() is
+        saveBackup() //since it changes the state of editor
+        editor.replaceSelection(app.clipboard)
+        return true
+
+class undoCommand extends command is
+    constructor(app: Application, editor: Editor) : base(app,editor)
+
+    method execute() is
+        app.undo()
+        return false
+
+class CommandHistory is
+    private field history: array of Command
+
+    //Last in...
+    method push(c : Command) is
+        //push the command to the end of history array
+    
+    //...first out
+    method pop(): Command is
+        //Get the most recent command from the history
+
+class Editor is
+    field text: string
+
+    method getSelection() is
+        //Return selected text
+    
+    method deleteSelection() is
+        //Delete selected text
+    
+    method replaceSelection(text) is
+        //Insert the clipboard's content at the current position
+
+class Button is
+    private field command: command
+
+    constructor(c: command) is
+        this.command = command
+    
+    method executeCommand() is
+        this.command.execute()
+    
+class Application is
+    field clipboard: string
+    field editors: array of Editor
+    field activeEditor: Editor
+    field history: CommandHistory
+
+    method createUI() is
+        //..
+        copy = function(){
+            executeCommand(new copyCommand(this, activeEditor))
+        }
+        //this button is invoker, it's not aware about the state of command it executes
+        copyButton = new Button(copy)
+
+        cut = function(){
+            executeCommand(new cutCommand(this,activeEditor))
+        }
+        cutButton = new Button(cut)
+
+        paste = function(){
+            executeCommand(new pasteCommand(this, activeEditor))
+        }
+        pasteButton = new Button(paste)
+
+        undo = function(){
+            executeCommand(new undoCommand(this,activeEditor))
+        }
+        undoButton = new Button(undo)
+    
+    method executeCommand(c: command) is
+        if(c.execute())
+            history.push(c)
+        
+    method undo() is
+        command = history.pop()
+        if(command is not null)
+            command.undo()
+
+   
+
