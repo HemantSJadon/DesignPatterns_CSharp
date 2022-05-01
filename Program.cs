@@ -34,10 +34,42 @@ namespace DesignPatterns_CSharp
             // Console.WriteLine(BuilderSuffixString(10,'a',str));
             
             //6. Command Pattern conceptual example
-            TestCommandPattern_conceptual();
+            // TestCommandPattern_conceptual();
+
+            //7. Command Pattern editor example
+            TestCommandPattern_editor();
+            
             
 
+
         }
+        static void FunCode()
+        {
+            string toPrint = "Hey Kancha, How you doing?";
+            string theQuestion = "Wanna fuck right here?";
+            String deleteLast = "\b \b";
+            
+            foreach(char c in toPrint)
+            {
+                Thread.Sleep(300);
+                Console.Write(c);
+                if(c == '?')
+                {
+                    for(int i = 0; i < 15; i++)
+                    {
+                        Thread.Sleep(300);
+                        Console.Write(deleteLast);
+                    }
+
+                }
+            }
+            foreach(char c in theQuestion)
+            {
+                Thread.Sleep(300);
+                Console.Write(c);
+            }
+        }
+
         private static string BuilderSuffixString(int runningCount, char character, StringBuilder stringToAppend)
         {
             if(runningCount > 10){
@@ -160,6 +192,11 @@ namespace DesignPatterns_CSharp
         static void TestCommandPattern_conceptual()
         {
             behaviouralPatterns.Client_command_conc client = new behaviouralPatterns.Client_command_conc();
+            client.ClientCode();
+        }
+        static void TestCommandPattern_editor()
+        {
+            behaviouralPatterns.Client_command_editor  client = new behaviouralPatterns.Client_command_editor();
             client.ClientCode();
         }
     }
