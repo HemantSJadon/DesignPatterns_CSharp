@@ -67,64 +67,86 @@ namespace DesignPatterns_CSharp.behavioural
             this.count = count;
         }
     }
-    public abstract class Button
+    public interface ICommand_editor
     {
-        protected TextEditingApplication app;
-        public Button(TextEditingApplication app)
+        public void Execute();
+    }
+    public class Button
+    {
+        private ICommand_editor command;
+        public Button(ICommand_editor command)
+        {
+            this.command = command;
+        }
+        public void Click()
+        {
+            this.command.Execute();
+        }
+
+    }
+    public class CopyCommand_editor : ICommand_editor
+    {
+        private TextEditingApplication app;
+        public CopyCommand_editor(TextEditingApplication app)
         {
             this.app = app;
         }
-        public abstract void Click(Selection selectedPart);
-    }
-    public class CopyButton : Button
-    {
-        public CopyButton(TextEditingApplication app) : base(app)
+        public void Execute()
         {
-            
-        }
-        public override void Click(Selection selectedPart)
-        {
-            this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(selectedPart);
+            this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(this.app.CurrentUserSelection);
         }
     }
-    public class CutButton : Button
+    public class CutCommand_editor : ICommand_editor
     {
-        public CutButton(TextEditingApplication app) : base(app)
-        {}
-        public override void Click(Selection selectedPart)
+        private TextEditingApplication app;
+        public CutCommand_editor(TextEditingApplication app)
         {
-            this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(selectedPart);
-            this.app.ActiveEditorWindow.DeleteSelection(selectedPart);
+            this.app = app;
+        }
+        public void Execute()
+        {
+            this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(this.app.CurrentUserSelection);
+            this.app.ActiveEditorWindow.DeleteSelection(this.app.CurrentUserSelection);
 
         }
     }
-    public class PasteButton : Button
+    public class PasteCommand_editor : ICommand_editor
     {
-        public PasteButton(TextEditingApplication app) : base(app)
-        {}
-        public override void Click(Selection selectedPart)
+        private TextEditingApplication app;
+        public PasteCommand_editor(TextEditingApplication app)
+        {
+            this.app = app;
+        }
+        public void Execute()
         {
             string textToPaste = this.app.ClipBoard;
-            this.app.ActiveEditorWindow.PasteText(selectedPart.startIndex, textToPaste);
+            this.app.ActiveEditorWindow.PasteText(this.app.CurrentUserSelection.startIndex, textToPaste);
         }
     }
-    public class NewButton : Button
+    public class NewCommand_editor : ICommand_editor
     {
-        public NewButton(TextEditingApplication app) : base(app)
-        {}
-        public override void Click(Selection selectedPart = null)
+        private TextEditingApplication app;
+        public NewCommand_editor(TextEditingApplication app)
+        {
+            this.app = app;
+        }
+        public void Execute()
         {
             this.app.OpenEditorWindows.Add(new EditorWindow());
             int num_openWindows = this.app.OpenEditorWindows.Count;
             this.app.ActiveEditorWindow = this.app.OpenEditorWindows[num_openWindows-1];
-            Console.WriteLine("NewButton: A new editor window has been opened and set as the active window.");
+            this.app.CurrentUserSelection = new Selection(0,0);
+            Console.WriteLine("NewCommand: A new editor window has been opened and set as the active window.");
         }
     }
-    public class CloseWindowButton : Button
+    public class CloseCommand_editor : ICommand_editor
     {
-        public CloseWindowButton(TextEditingApplication app) : base(app)
-        {}
-        public override void Click(Selection selectedPart)
+        private TextEditingApplication app;
+        public CloseCommand_editor(TextEditingApplication app)
+        {
+            this.app = app;
+        }
+        public void Execute()
         {
             if(this.app.OpenEditorWindows.Count == 1)
             {
@@ -138,7 +160,7 @@ namespace DesignPatterns_CSharp.behavioural
     }
     public class HeadSection
     {
-        public HeadSection(CopyButton copy, CutButton cut, PasteButton paste, NewButton newButton, CloseWindowButton close)
+        public HeadSection(Button copy, Button cut, Button paste, Button newButton, Button close)
         {
             this.CopyButton = copy;
             this.CutButton = cut;
@@ -146,11 +168,11 @@ namespace DesignPatterns_CSharp.behavioural
             this.NewButton = newButton;
             this.CloseButton = close;
         }
-        public CopyButton CopyButton{get;}
-        public CutButton CutButton{get;}
-        public PasteButton PasteButton {get;}
-        public NewButton NewButton {get;}
-        public CloseWindowButton CloseButton { get;} 
+        public Button CopyButton{get;}
+        public Button CutButton{get;}
+        public Button PasteButton {get;}
+        public Button NewButton {get;}
+        public Button CloseButton { get;} 
     }
 
     /*
@@ -164,12 +186,36 @@ namespace DesignPatterns_CSharp.behavioural
         level
         */
         private EditorWindow activeEditorWindow = new EditorWindow();
-        // private List<EditorWindow> openWindows = new List<EditorWindow>();
         
         public TextEditingApplication()
         {
             this.OpenEditorWindows.Add(this.activeEditorWindow);
-            this.Header = new HeadSection(new CopyButton(this), new CutButton(this), new PasteButton(this), new NewButton(this), new CloseWindowButton(this));
+            this.Header = this.GetNewHeader();
+            this.Shortcuts = SetShortcutCommands();
+        }
+        private HeadSection GetNewHeader()
+        {
+            Button copyButton = new Button(new CopyCommand_editor(this));
+            Button cutButton = new Button(new CopyCommand_editor(this));
+            Button pasteButton = new Button(new PasteCommand_editor(this));
+            Button newButton = new Button(new NewCommand_editor(this));
+            Button closeButton = new Button(new CloseCommand_editor(this));
+            return new HeadSection(copyButton,cutButton, pasteButton, newButton, closeButton);
+        }
+        private Dictionary<string,ICommand_editor> SetShortcutCommands()
+        {
+            Dictionary<string, ICommand_editor> shortcuts = new Dictionary<string, ICommand_editor>();
+            var copy = new CopyCommand_editor(this);
+            var cut = new CutCommand_editor(this);
+            var paste = new PasteCommand_editor(this);
+            var newCommand = new NewCommand_editor(this);
+            var close = new CloseCommand_editor(this);
+            shortcuts.Add("ctrl+c",copy);
+            shortcuts.Add("ctrl+x",cut);
+            shortcuts.Add("ctrl+v",paste);
+            shortcuts.Add("ctrl+n",newCommand);
+            shortcuts.Add("ctrl+q",close);
+            return shortcuts;
         }
         public EditorWindow ActiveEditorWindow {
             get
@@ -184,6 +230,16 @@ namespace DesignPatterns_CSharp.behavioural
         public List<EditorWindow> OpenEditorWindows { get;internal set;} = new List<EditorWindow>();
         public HeadSection Header {get; private set;}
         public string ClipBoard {get;set;} = String.Empty;
+        public Selection CurrentUserSelection { get; set; } = new Selection(0,0);
+        public Dictionary<string, ICommand_editor> Shortcuts {get;private set;}
+        public void HitAShortcut(string keyCombo)
+        {
+            if(this.Shortcuts.ContainsKey(keyCombo))
+                this.Shortcuts[keyCombo].Execute();
+            else
+                Console.WriteLine($"The entered key combo {keyCombo} does not have a command registered against it.");
+
+        }
 
     }
     public class Client_command_editor
@@ -206,13 +262,15 @@ namespace DesignPatterns_CSharp.behavioural
             Console.WriteLine("Client: the current active editor window has the following typed in it ...");
             Console.WriteLine(app.ActiveEditorWindow.Text);
             Console.WriteLine("Client: user selects a part starting from character 'g' of the word 'grand' to 'g' of the word 'opening' ...");
-            Selection userSelection = new Selection(15,13); //starting at index 15, count of characters in selection= 13
+            app.CurrentUserSelection = new Selection(15,13); //starting at index 15, count of characters in selection= 13
             Console.WriteLine("Client: user clicks the copy button to copy the selected part ... ");
-            app.Header.CopyButton.Click(userSelection);
+            app.Header.CopyButton.Click();
             Console.WriteLine("Client: user clicks the new window button...");
             app.Header.NewButton.Click();
-            Console.WriteLine("Client: user clicks the paste button to paste the copied text into the newly opened window...");
-            app.Header.PasteButton.Click(new Selection(0,0));
+            string keyComboToPaste = "ctrl+v";
+            Console.WriteLine($"Client: user hits the keycombo {keyComboToPaste} to paste the copied text into the newly opened window...");
+            //app.Header.PasteButton.Click();
+            app.HitAShortcut(keyComboToPaste);
             Console.WriteLine("Client: the current active editor window has the following typed in it ...");
             Console.WriteLine(app.ActiveEditorWindow.Text);
             
