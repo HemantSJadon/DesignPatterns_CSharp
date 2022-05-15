@@ -1,0 +1,41 @@
+class RoundHole is
+    constructor RoundHole(radius){..}
+    method getRadius() is
+        //Returns the radius of the RoundHole
+    method fits(peg : RoundPeg) is
+        return this.getRadius() >= peg.getRadius()
+    
+class RoundPeg is 
+    constructor RoundPeg(radius){...}
+    method getRadius() is
+        //returns the radius of the RoundPeg
+
+class SquarePeg is
+    constructor SquarePeg(width){...}
+    method getWidth() is
+        //returns the width of the square SquarePeg
+
+//Contains a reference of the squarepeg class   
+class SquarePegAdapter extends  RoundPeg is
+    private field peg: SquarePeg
+    constructor SquarePegAdapter(peg: SquarePeg) is
+        this.peg = peg;
+    method getRadius() is
+        return this.peg.getWidth()/sqrt(2)
+
+in the client code
+
+hole = new RoundHole(5)
+rpeg = new RoundPeg(6)
+
+hole.fits(rpeg) // should return false
+
+small_speg =  new SquarePeg(5)
+large_speg = new SquarePeg(10)
+hole.fits(small_speg) //this won't compile
+
+small_speg_adapter = new SquarePegAdapter(small_speg)
+large_speg_adapter = new SquarePegAdapter(large_speg)
+hole.fits(small_speg_adapter)//return true , since adapter radius will be smaller than 5
+hole.fits(large_speg_adapter)//return false, since adapter radium will be large than 5
+

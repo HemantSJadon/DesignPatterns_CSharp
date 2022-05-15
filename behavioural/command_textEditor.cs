@@ -22,6 +22,10 @@ namespace DesignPatterns_CSharp.behavioural
             {
                 return this.text.ToString();
             }
+            set
+            {
+                this.text = new StringBuilder(value);
+            }
         }
 
         /*
@@ -69,7 +73,10 @@ namespace DesignPatterns_CSharp.behavioural
     }
     public interface ICommand_editor
     {
-        public void Execute();
+        Backup Backup {get;}
+        void SaveBackup();
+        public bool Execute(); //Execute returns bool to indicate whether this command results in a change of state > which might require for the command to be saved in the history
+        public void Undo();
     }
     public class Button
     {
@@ -84,6 +91,16 @@ namespace DesignPatterns_CSharp.behavioural
         }
 
     }
+    public class Backup
+    {
+        public Backup(EditorWindow editor, string text)
+        {
+            this.editor = editor;
+            this.Text = text;
+        }
+        public string Text{get;}
+        public EditorWindow editor { get;}
+    }
     public class CopyCommand_editor : ICommand_editor
     {
         private TextEditingApplication app;
@@ -91,9 +108,24 @@ namespace DesignPatterns_CSharp.behavioural
         {
             this.app = app;
         }
-        public void Execute()
+        
+        public Backup Backup {get;private set;}
+        public bool Execute()
         {
             this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(this.app.CurrentUserSelection);
+            return false; //since this command does not result in the state change
+        }
+
+        public void SaveBackup()
+        {
+            //this.Backup = new Backup(this.app.ActiveEditorWindow, this.app.ActiveEditorWindow.Text);
+            return;
+        }
+
+        public void Undo()
+        {
+            //can't undo a copy command
+            throw new NotImplementedException();
         }
     }
     public class CutCommand_editor : ICommand_editor
@@ -103,11 +135,26 @@ namespace DesignPatterns_CSharp.behavioural
         {
             this.app = app;
         }
-        public void Execute()
+
+        public Backup Backup {get; private set;}
+
+        public bool Execute()
         {
+            SaveBackup();
             this.app.ClipBoard = this.app.ActiveEditorWindow.CopySelection(this.app.CurrentUserSelection);
             this.app.ActiveEditorWindow.DeleteSelection(this.app.CurrentUserSelection);
+            this.app.CommandHistory.Push(this);
+            return true;
+        }
 
+        public void SaveBackup()
+        {
+            this.Backup = new Backup(this.app.ActiveEditorWindow, this.app.ActiveEditorWindow.Text);
+        }
+
+        public void Undo()
+        {
+            this.Backup.editor.Text = this.Backup.Text;
         }
     }
     public class PasteCommand_editor : ICommand_editor
@@ -117,10 +164,26 @@ namespace DesignPatterns_CSharp.behavioural
         {
             this.app = app;
         }
-        public void Execute()
+
+        public Backup Backup {get; private set;}
+
+        public bool Execute()
         {
+            SaveBackup();
             string textToPaste = this.app.ClipBoard;
             this.app.ActiveEditorWindow.PasteText(this.app.CurrentUserSelection.startIndex, textToPaste);
+            this.app.CommandHistory.Push(this);
+            return true;
+        }
+
+        public void SaveBackup()
+        {
+            this.Backup = new Backup(this.app.ActiveEditorWindow, this.app.ActiveEditorWindow.Text);
+        }
+
+        public void Undo()
+        {
+            this.Backup.editor.Text = this.Backup.Text;
         }
     }
     public class NewCommand_editor : ICommand_editor
@@ -130,13 +193,27 @@ namespace DesignPatterns_CSharp.behavioural
         {
             this.app = app;
         }
-        public void Execute()
+
+        public Backup Backup {get; private set;}
+
+        public bool Execute()
         {
             this.app.OpenEditorWindows.Add(new EditorWindow());
             int num_openWindows = this.app.OpenEditorWindows.Count;
             this.app.ActiveEditorWindow = this.app.OpenEditorWindows[num_openWindows-1];
             this.app.CurrentUserSelection = new Selection(0,0);
             Console.WriteLine("NewCommand: A new editor window has been opened and set as the active window.");
+            return false;
+        }
+
+        public void SaveBackup()
+        {
+            return; // does not result in the editor state change
+        }
+
+        public void Undo()
+        {
+            throw new NotImplementedException(); //undo not allowed
         }
     }
     public class CloseCommand_editor : ICommand_editor
@@ -146,33 +223,74 @@ namespace DesignPatterns_CSharp.behavioural
         {
             this.app = app;
         }
-        public void Execute()
+
+        public Backup Backup {get; private set;}
+
+        public bool Execute()
         {
             if(this.app.OpenEditorWindows.Count == 1)
             {
                 Console.WriteLine("CloseWindowButton: Can't close the current editor window. Open one more window to close this one.");
-                return;
             }
             this.app.OpenEditorWindows.Remove(this.app.ActiveEditorWindow);
             int num_openWinds = this.app.OpenEditorWindows.Count;
             this.app.ActiveEditorWindow = this.app.OpenEditorWindows[num_openWinds-1];
+            return false;
+        }
+
+        public void SaveBackup()
+        {
+            return ; // does not result in a state change
+        }
+
+        public void Undo()
+        {
+            throw new NotImplementedException(); // undo not allowed
+        }
+    }
+    public class UndoCommand_editor : ICommand_editor
+    {
+        private TextEditingApplication app;
+        public UndoCommand_editor(TextEditingApplication app)
+        {
+            this.app = app;
+        }
+        public Backup Backup {get; private set;}
+
+        public bool Execute()
+        {
+            var lastRunCommand =  this.app.CommandHistory.Pop();
+            lastRunCommand.Undo();
+            return false;
+        }
+
+        public void SaveBackup()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Undo()
+        {
+            throw new NotImplementedException();
         }
     }
     public class HeadSection
     {
-        public HeadSection(Button copy, Button cut, Button paste, Button newButton, Button close)
+        public HeadSection(Button copy, Button cut, Button paste, Button newButton, Button close, Button undo)
         {
             this.CopyButton = copy;
             this.CutButton = cut;
             this.PasteButton = paste;
             this.NewButton = newButton;
             this.CloseButton = close;
+            this.UndoButton = undo;
         }
         public Button CopyButton{get;}
         public Button CutButton{get;}
         public Button PasteButton {get;}
         public Button NewButton {get;}
         public Button CloseButton { get;} 
+        public Button UndoButton {get;}
     }
 
     /*
@@ -200,7 +318,8 @@ namespace DesignPatterns_CSharp.behavioural
             Button pasteButton = new Button(new PasteCommand_editor(this));
             Button newButton = new Button(new NewCommand_editor(this));
             Button closeButton = new Button(new CloseCommand_editor(this));
-            return new HeadSection(copyButton,cutButton, pasteButton, newButton, closeButton);
+            Button undoButton = new Button(new UndoCommand_editor(this));
+            return new HeadSection(copyButton,cutButton, pasteButton, newButton, closeButton, undoButton);
         }
         private Dictionary<string,ICommand_editor> SetShortcutCommands()
         {
@@ -232,14 +351,27 @@ namespace DesignPatterns_CSharp.behavioural
         public string ClipBoard {get;set;} = String.Empty;
         public Selection CurrentUserSelection { get; set; } = new Selection(0,0);
         public Dictionary<string, ICommand_editor> Shortcuts {get;private set;}
+        public Stack<ICommand_editor> CommandHistory {get; set;}
         public void HitAShortcut(string keyCombo)
         {
             if(this.Shortcuts.ContainsKey(keyCombo))
                 this.Shortcuts[keyCombo].Execute();
             else
                 Console.WriteLine($"The entered key combo {keyCombo} does not have a command registered against it.");
-
         }
+        // public void AddToHistory(ICommand_editor command)
+        // {
+        //     this.CommandHistory.Push(command);
+        // }
+        // public ICommand_editor GetTheMostRecentCommand()
+        // {
+        //     return this.CommandHistory.Peek();
+        // }
+        // public void RemoveTheRecentCommandFromHistory()
+        // {
+        //     this.CommandHistory.Pop();
+        // }
+        
 
     }
     public class Client_command_editor

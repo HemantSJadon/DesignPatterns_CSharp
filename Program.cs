@@ -37,7 +37,10 @@ namespace DesignPatterns_CSharp
             // TestCommandPattern_conceptual();
 
             //7. Command Pattern editor example
-            TestCommandPattern_editor();
+            //TestCommandPattern_editor();
+            
+            //8. Adapter pattern conceptual example
+            TestAdapterPattern_conceptual();
             
             
 
@@ -197,6 +200,11 @@ namespace DesignPatterns_CSharp
         static void TestCommandPattern_editor()
         {
             behaviouralPatterns.Client_command_editor  client = new behaviouralPatterns.Client_command_editor();
+            client.ClientCode();
+        }
+        static void TestAdapterPattern_conceptual()
+        {
+            var client = new Client_adapter_conc();
             client.ClientCode();
         }
     }
