@@ -40,7 +40,10 @@ namespace DesignPatterns_CSharp
             //TestCommandPattern_editor();
             
             //8. Adapter pattern conceptual example
-            TestAdapterPattern_conceptual();
+            //TestAdapterPattern_conceptual();
+
+            //9. Adapter pattern hole peg example
+            TestAdapterPattern_holePeg();
             
             
 
@@ -205,6 +208,11 @@ namespace DesignPatterns_CSharp
         static void TestAdapterPattern_conceptual()
         {
             var client = new Client_adapter_conc();
+            client.ClientCode();
+        }
+        static void TestAdapterPattern_holePeg()
+        {
+            var client = new Client_adapter_holepeg();
             client.ClientCode();
         }
     }
